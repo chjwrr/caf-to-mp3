@@ -215,63 +215,103 @@
     _mp3FilePath=[_mp3FilePath stringByAppendingString:@"/MyAudioMemoMP3.mp3"];
     
     @try {
-        int read, write;
-        FILE *pcm = fopen([cafpath cStringUsingEncoding:1], "rb");  //source 被转换的音频文件位置
-        //        if(pcm == NULL)
-        //        {
-        //            NSLog(@"file not found");
-        //        }
         
-        fseek(pcm, 4*1024, SEEK_CUR);                                   //skip file header,跳过头文件 有的文件录制会有音爆，加上此句话去音爆
-        FILE *mp3 = fopen([_mp3FilePath cStringUsingEncoding:1], "wb");  //output 输出生成的Mp3文件位置
+        int read, write;
+        
+        FILE *pcm = fopen([cafpath cStringUsingEncoding:4], "rb");  //source 被转换的音频文件位置
+        
+        if(pcm == NULL)
+            
+        {
+            
+            NSLog(@"file not found");
+            
+            return;
+        }
+        
+        
+        
+        fseek(pcm, 4*1024, SEEK_CUR);                                   //skip file header
+        
+        FILE *mp3 = fopen([_mp3FilePath cStringUsingEncoding:4], "wb");  //output 输出生成的Mp3文件位置
+        
+        
         
         const int PCM_SIZE = 8192;
+        
         const int MP3_SIZE = 8192;
+        
         short int pcm_buffer[PCM_SIZE*2];
+        
         unsigned char mp3_buffer[MP3_SIZE];
         
+        
+        
         lame_t lame = lame_init();
-        lame_set_num_channels(lame, 2);//设置1为单通道，默认为2双通道
+        
+        lame_set_num_channels(lame,1);//设置1为单通道，默认为2双通道
+        
         lame_set_in_samplerate(lame, 8000.0);//11025.0
+        
         //lame_set_VBR(lame, vbr_default);
-        lame_set_brate(lame, 16);
-        lame_set_mode(lame, 3);
-        lame_set_quality(lame, 2);
+        
+        lame_set_brate(lame,8);
+        
+        lame_set_mode(lame,3);
+        
+        lame_set_quality(lame,2); /* 2=high 5 = medium 7=low 音质*/
+        
         lame_init_params(lame);
         
         
         
         do {
+            
             read = fread(pcm_buffer, 2*sizeof(short int), PCM_SIZE, pcm);
-            if (read == 0) {
+            
+            if (read == 0)
+                
                 write = lame_encode_flush(lame, mp3_buffer, MP3_SIZE);
-            }else{
+            
+            else
+                
                 write = lame_encode_buffer_interleaved(lame, pcm_buffer, read, mp3_buffer, MP3_SIZE);
-            }
+            
+            
             
             fwrite(mp3_buffer, write, 1, mp3);
             
+            
+            
         } while (read != 0);
+        
+        
+        
         lame_close(lame);
+        
         fclose(mp3);
+        
         fclose(pcm);
         
+        
     }
+    
+    
+    
+    
     @catch (NSException *exception) {
-        NSLog(@"description ==%@",[exception description]);
+        
+        NSLog(@"%@",[exception description]);
+        
+        
     }
+    
     @finally {
         
-        //        _cafFilePath = _mp3FilePath;
-        //        _voiceData = [NSData dataWithContentsOfURL:[NSURL fileURLWithPath:_mp3FilePath]];   //此处可以打断点看下data文件的大小，如果太小，很可能是个空文件
-        //        NSLog(@"data ＝ %@",_voiceData);
-        //
-        ////         [[NSFileManager defaultManager] removeItemAtURL:[NSURL fileURLWithPath:_cafFilePath] error:nil]; // 生成文件移除原文件
-        //
-        //        NSLog(@"执行完成");
-        
+        NSLog(@"执行完成");
         
     }
+    
 }
 
 
